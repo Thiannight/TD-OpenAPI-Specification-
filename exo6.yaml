@@ -1,0 +1,243 @@
+openapi: 3.1.0
+info:
+  title: User Profile API
+  version: 1.0.0
+  description: API pour la gestion des profils utilisateurs
+servers:
+  - url: "http://localhost:8080"
+paths:
+  /users:
+    post:
+      summary: Crée une liste d'utilisateurs
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/CreateUserProfile'
+            example:
+              - first_name: John
+                last_name: Doe
+                birthdate: '1990-01-15'
+                email: john.doe@example.com
+                address_street: 123 Main St
+                address_city: Antananarivo
+                address_country: Madagascar
+                address_postal_code: 101
+                needs_newsletter: true
+                language: eng
+      responses:
+        '201':
+          description: Utilisateurs créés avec succès
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserProfile'
+              example:
+                - identifier: "STD24001"
+                  first_name: John
+                  last_name: Doe
+                  birthdate: '1990-01-15'
+                  email: john.doe@example.com
+                  address_street: 123 Main St
+                  address_city: Antananarivo
+                  address_country: Madagascar
+                  address_postal_code: 101
+                  needs_newsletter: true
+                  language: eng
+
+  /users/{id}:
+    get:
+      summary: Récupère un utilisateur par son ID
+      parameters:
+        - $ref: '#/components/parameters/UserIdParam'
+      responses:
+        '200':
+          description: Utilisateur trouvé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+        '404':
+          description: Utilisateur non trouvé
+
+    put:
+      summary: Met à jour les informations personnelles d'un utilisateur
+      parameters:
+        - $ref: '#/components/parameters/UserIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PersonalInfo'
+            example:
+              first_name: Jean
+              last_name: Michel
+              birthdate: '1992-05-20'
+              email: jeanMichel@example.com
+      responses:
+        '200':
+          description: Informations personnelles mises à jour
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+
+  /users/{id}/address:
+    put:
+      summary: Met à jour l'adresse d'un utilisateur
+      parameters:
+        - $ref: '#/components/parameters/UserIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Address'
+            example:
+              address_street: 456 Oak Ave
+              address_city: Antsirabe
+              address_country: Madagascar
+              address_postal_code: 110
+      responses:
+        '200':
+          description: Adresse mise à jour
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+
+  /users/{id}/preferences:
+    put:
+      summary: Met à jour les préférences d'un utilisateur
+      parameters:
+        - $ref: '#/components/parameters/UserIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Preferences'
+            example:
+              needs_newsletter: false
+              language: fr
+      responses:
+        '200':
+          description: Préférences mises à jour
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+
+components:
+  schemas:
+    UserProfile:
+      type: object
+      properties:
+        identifier:
+          type: string
+          pattern: '^STD\d{5}$'
+        first_name:
+          type: string
+        last_name:
+          type: string
+        birthdate:
+          type: string
+          format: date
+        email:
+          type: string
+          format: email
+        address_street:
+          type: string
+        address_city:
+          type: string
+        address_country:
+          type: string
+        address_postal_code:
+          type: integer
+        needs_newsletter:
+          type: boolean
+        language:
+          type: string
+          enum: [mg, fr, eng]
+      required:
+        - identifier
+        - first_name
+        - last_name
+        - birthdate
+        - email
+        - address_street
+        - address_city
+        - address_country
+        - address_postal_code
+        - needs_newsletter
+        - language
+
+    CreateUserProfile:
+      allOf:
+        - $ref: '#/components/schemas/PersonalInfo'
+        - $ref: '#/components/schemas/Address'
+        - $ref: '#/components/schemas/Preferences'
+
+    PersonalInfo:
+      type: object
+      properties:
+        first_name:
+          type: string
+        last_name:
+          type: string
+        birthdate:
+          type: string
+          format: date
+        email:
+          type: string
+          format: email
+      required:
+        - first_name
+        - last_name
+        - birthdate
+        - email
+
+    Address:
+      type: object
+      properties:
+        address_street:
+          type: string
+        address_city:
+          type: string
+        address_country:
+          type: string
+        address_postal_code:
+          type: integer
+      required:
+        - address_street
+        - address_city
+        - address_country
+        - address_postal_code
+
+    Preferences:
+      type: object
+      properties:
+        needs_newsletter:
+          type: boolean
+        language:
+          type: string
+          enum: [mg, fr, eng]
+      required:
+        - needs_newsletter
+        - language
+
+  parameters:
+    UserIdParam:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        pattern: '^STD\d{5}$'
+      example: STD24137
